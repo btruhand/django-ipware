@@ -11,15 +11,17 @@ def get_client_ip(
     proxy_count: Optional[int] = None,
     proxy_trusted_ips: Optional[Iterable[str]] = None,
     request_header_order: Optional[Iterable[str]] = None,
-) -> Tuple[str, bool]:
+) -> Tuple[str | None, bool]:
     leftmost = proxy_order == 'left-most'
     request_header_order = getattr(settings, 'IPWARE_META_PRECEDENCE_ORDER', request_header_order)
 
     # Instantiate IpWare with values from the function arguments
-    ipw = IpWare(precedence=request_header_order,
-                 leftmost=leftmost,
-                 proxy_count=proxy_count,
-                 proxy_list=proxy_trusted_ips)
+    ipw = IpWare(
+        precedence=tuple(request_header_order) if request_header_order else (),
+        leftmost=leftmost,
+        proxy_count=proxy_count,
+        proxy_list=list(proxy_trusted_ips) if proxy_trusted_ips else [],
+    )
 
     ip, _ = ipw.get_client_ip(request.META, True)
 
